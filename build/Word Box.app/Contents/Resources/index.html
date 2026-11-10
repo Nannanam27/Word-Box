@@ -1,0 +1,863 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Word Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: one centered study column on plain paper; underlined tabs on top, a flat ruled 5x3 index card is the hero of Review and Quiz. */
+:root {
+  --bg: #F3F0E8;
+  --surface: #FFFFFF;
+  --sunk: #F8F6F1;
+  --ink: #1E1C19;
+  --muted: #6B665C;
+  --line: #E2DDD1;
+  --line-strong: #CBC4B4;
+  --accent: #2A47A0;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E7EBF5;
+  --margin: #D9503B;
+  --card-front: #FFFEFA;
+  --card-back: #FBF7EC;
+  --thai: #7A4A22;
+  --good: #2B7149;
+  --good-soft: #E2EFE5;
+  --bad: #B23A28;
+  --bad-soft: #F6E3DE;
+  --shadow: 0 1px 2px rgba(30, 28, 25, .05);
+  --card-shadow: 0 1px 0 var(--line-strong), 0 2px 6px rgba(30, 28, 25, .06);
+  --f-display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --f-body: "IBM Plex Sans", "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-thai: "IBM Plex Sans Thai", "Thonburi", "Leelawadee UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161513; --surface: #1F1E1B; --sunk: #1A1917; --ink: #ECE8DF; --muted: #9D978B; --line: #2F2D29; --line-strong: #46433D;
+    --accent: #93A9EE; --accent-ink: #12141B; --accent-soft: #232A3D; --margin: #E0705C;
+    --card-front: #22211E; --card-back: #272520; --thai: #E2AB7C;
+    --good: #7FC79B; --good-soft: #1C2A21; --bad: #EF8A76; --bad-soft: #33201B;
+    --shadow: none; --card-shadow: 0 1px 0 var(--line-strong);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+    --bg: #161513; --surface: #1F1E1B; --sunk: #1A1917; --ink: #ECE8DF; --muted: #9D978B; --line: #2F2D29; --line-strong: #46433D;
+    --accent: #93A9EE; --accent-ink: #12141B; --accent-soft: #232A3D; --margin: #E0705C;
+    --card-front: #22211E; --card-back: #272520; --thai: #E2AB7C;
+    --good: #7FC79B; --good-soft: #1C2A21; --bad: #EF8A76; --bad-soft: #33201B;
+    --shadow: none; --card-shadow: 0 1px 0 var(--line-strong);
+    color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { min-height: 100%; background: var(--bg); }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--f-body); min-height: 100vh; min-height: 100dvh; margin: 0; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 72px; display: flex; flex-direction: column; gap: 22px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: -.005em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+::selection { background: var(--accent-soft); }
+
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.logo { width: 44px; height: 44px; flex: none; border-radius: 10px; background: var(--ink); color: var(--bg); display: grid; place-items: center; }
+.logo svg { width: 28px; height: 28px; }
+header.top h1 { font-size: 2rem; line-height: 1.05; }
+header.top p { margin: 3px 0 0; color: var(--muted); font-size: .95rem; }
+.top-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stats { display: flex; font-variant-numeric: tabular-nums; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.stat { display: flex; flex-direction: column; align-items: center; min-width: 68px; padding: 8px 12px; border-left: 1px solid var(--line); }
+.stat:first-child { border-left: 0; }
+.stat b { font-family: var(--f-display); font-weight: 600; font-size: 1.45rem; line-height: 1; }
+.stat span { font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 5px; font-weight: 500; }
+.stat.due b { color: var(--bad); }
+.stat.learned b { color: var(--good); }
+.theme-btn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.theme-btn:hover { border-color: var(--line-strong); }
+.theme-btn svg { width: 18px; height: 18px; }
+
+nav.tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--line-strong); }
+nav.tabs button { border: 0; background: transparent; padding: 10px 2px; margin-bottom: -1px; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 500; color: var(--muted); transition: color .15s, border-color .15s; }
+nav.tabs button:hover { color: var(--ink); }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
+nav.tabs .count { font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 6px; font-size: .75rem; padding: 1px 6px; border-radius: 4px; background: var(--bad-soft); color: var(--bad); }
+nav.tabs .count:empty { display: none; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-strong); background: var(--surface); padding: 9px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: border-color .15s, background .15s; }
+.btn:hover { border-color: var(--ink); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.primary:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 6px 10px; }
+.btn.ghost:hover { color: var(--ink); background: var(--sunk); }
+.btn.small { padding: 5px 11px; font-size: .88rem; border-radius: 6px; }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+kbd { font: .72rem/1 ui-monospace, Menlo, monospace; padding: 2px 5px; border: 1px solid var(--line-strong); border-radius: 4px; color: var(--muted); background: var(--sunk); }
+.btn.primary kbd { background: transparent; border-color: currentColor; color: inherit; opacity: .7; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.spacer { flex: 1; }
+.muted { color: var(--muted); }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 500; }
+
+/* The flashcard: a flat 5x3 index card with a red header rule */
+.stage { perspective: 1400px; }
+.card { position: relative; width: 100%; max-width: 100%; aspect-ratio: 5 / 3; min-height: 230px; cursor: pointer; transform-style: preserve-3d; transition: transform .5s cubic-bezier(.2,.75,.2,1); }
+.card.flipped { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 6px; border: 1px solid var(--line); box-shadow: var(--card-shadow); background: var(--card-front);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 24px 30px; text-align: center; gap: 10px; overflow: auto; }
+.face::before { content: ""; position: absolute; left: 0; right: 0; top: 46px; border-top: 1px solid var(--margin); opacity: .6; pointer-events: none; }
+.face.back { transform: rotateY(180deg); background: var(--card-back); }
+.face .th, .item .th, .opt .th { font-family: var(--f-thai); color: var(--thai); }
+.face .th { font-size: clamp(.95rem, 3vw, 1.15rem); line-height: 1.5; overflow-wrap: anywhere; }
+.face .big.th { font-size: clamp(1.3rem, 4.4vw, 1.9rem); line-height: 1.4; }
+.item .th { font-size: .92rem; }
+.opt .th { font-size: .95rem; }
+.face .corner { position: absolute; top: 15px; left: 20px; font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 500; }
+.face .corner.r { left: auto; right: 20px; color: var(--accent); }
+.face .big { font-family: var(--f-display); font-weight: 500; font-size: clamp(2rem, 6.8vw, 3.2rem); line-height: 1.1; overflow-wrap: anywhere; }
+.face .mid { font-size: clamp(1.1rem, 3.6vw, 1.4rem); line-height: 1.4; overflow-wrap: anywhere; font-weight: 500; }
+.face .ex { font-family: var(--f-display); font-style: italic; color: var(--muted); max-width: 46ch; font-size: 1.05rem; }
+.face .hint { position: absolute; bottom: 12px; font-size: .78rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .card, .btn, nav.tabs button { transition: none; } }
+
+.rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.rate .btn { flex-direction: column; gap: 2px; padding: 12px 8px; border-radius: 8px; font-weight: 600; }
+.rate .btn small { font-weight: 400; color: var(--muted); font-size: .78rem; }
+.rate .again { color: var(--bad); }
+.rate .good { color: var(--accent); }
+.rate .easy { color: var(--good); }
+.rate .btn:hover { border-color: currentColor; }
+
+.progress { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--ink); transition: width .3s; }
+
+.options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .options { grid-template-columns: 1fr; } }
+.opt { text-align: left; justify-content: flex-start; font-weight: 400; padding: 13px 16px; min-height: 56px; overflow-wrap: anywhere; border-radius: 8px; }
+.opt:hover:not(:disabled) { border-color: var(--ink); }
+.opt kbd { flex: none; }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.feedback { padding: 12px 16px; border-radius: 8px; font-weight: 600; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; border-left: 3px solid currentColor; }
+.feedback.ok { background: var(--good-soft); color: var(--good); }
+.feedback.no { background: var(--bad-soft); color: var(--bad); }
+.feedback span { font-weight: 400; color: var(--ink); }
+
+.field { display: flex; flex-direction: column; gap: 5px; flex: 1 1 180px; min-width: 0; }
+input[type=text], input[type=search], textarea, select { width: 100%; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; transition: border-color .15s; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 1px var(--accent); }
+::placeholder { color: var(--muted); opacity: .7; }
+textarea { min-height: 120px; resize: vertical; font-family: ui-monospace, Menlo, monospace; font-size: .9rem; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-left: 1px solid var(--line-strong); background: var(--surface); padding: 7px 12px; cursor: pointer; font-size: .9rem; font-weight: 500; color: var(--muted); }
+.seg button:first-child { border-left: 0; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; padding: 16px 18px; border-top: 1px solid var(--line); align-items: center; }
+.item:hover { background: var(--sunk); }
+.item:first-child { border-top: 0; }
+.item .w { font-family: var(--f-display); font-weight: 600; font-size: 1.25rem; overflow-wrap: anywhere; }
+.item .m { overflow-wrap: anywhere; }
+.item .e { font-family: var(--f-display); font-size: .95rem; color: var(--muted); font-style: italic; overflow-wrap: anywhere; }
+.item .side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.item .acts { display: flex; gap: 2px; }
+.item.editing { grid-template-columns: 1fr; }
+.item.editing:hover { background: transparent; }
+.pips { display: inline-flex; gap: 3px; }
+.pips i { width: 10px; height: 4px; border-radius: 1px; background: var(--line-strong); }
+.pips i.on { background: var(--ink); }
+.chip { display: inline-block; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 500; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--muted); vertical-align: middle; margin-left: 6px; font-family: var(--f-body); }
+.chip.due { border-color: transparent; background: var(--bad-soft); color: var(--bad); }
+.notice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; background: var(--surface); border: 1px dashed var(--line-strong); font-size: .93rem; }
+.empty { text-align: center; padding: 40px 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.empty h2 { font-size: 1.5rem; }
+.empty p { margin: 0; max-width: 44ch; color: var(--muted); }
+.score { font-family: var(--f-display); font-size: 3.6rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.boxes { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 480px) { .boxes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.boxes > div { padding: 12px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); }
+.boxes b { display: block; font-family: var(--f-display); font-weight: 600; font-size: 1.5rem; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.wordline { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.pron { color: var(--muted); font-size: 1rem; letter-spacing: .02em; }
+.item .pron { font-size: .88rem; font-family: var(--f-body); font-weight: 400; margin-left: 6px; }
+.say { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid var(--line-strong); background: transparent; color: var(--ink); cursor: pointer; vertical-align: middle; transition: background .15s, color .15s, border-color .15s; }
+.say svg { width: 16px; height: 16px; }
+.say.sm { width: 26px; height: 26px; margin-left: 6px; }
+.say.sm svg { width: 13px; height: 13px; }
+.say:hover { border-color: var(--ink); }
+.say.playing { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; }
+.check input { width: 16px; height: 16px; accent-color: var(--ink); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,.15); max-width: calc(100% - 32px); }
+.native .wrap { padding-top: 52px; }
+.foot { font-size: .82rem; color: var(--muted); text-align: center; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><rect x="10" y="5" width="17" height="12" rx="1.5" transform="rotate(8 18 11)" stroke="currentColor" stroke-width="1.6" opacity=".55"/><rect x="5" y="11" width="20" height="14" rx="1.5" fill="currentColor"/><path d="M5 15h20" stroke="#D9503B" stroke-width="1.4"/><path d="M8.5 19h12M8.5 22h7.5" style="stroke:var(--muted)" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+      <div>
+        <h1>Word Box</h1>
+        <p>Add words, flip through them, then quiz yourself.</p>
+      </div>
+    </div>
+    <div class="top-right">
+    <div class="stats" aria-label="Your progress">
+      <div class="stat"><b id="st-total">0</b><span>Words</span></div>
+      <div class="stat due"><b id="st-due">0</b><span>Due now</span></div>
+      <div class="stat learned"><b id="st-learned">0</b><span>Learned</span></div>
+    </div>
+    <button type="button" class="theme-btn" id="theme-btn" aria-label="Change theme"></button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-review" data-tab="review" aria-selected="true">Review<span class="count" id="tab-due"></span></button>
+    <button role="tab" id="tab-quiz" data-tab="quiz" aria-selected="false">Quiz</button>
+    <button role="tab" id="tab-words" data-tab="words" aria-selected="false">Words</button>
+  </nav>
+
+  <section id="view-review"></section>
+  <section id="view-quiz" hidden></section>
+  <section id="view-words" hidden>
+    <div class="panel">
+      <div class="row">
+        <h2 style="font-size:1.2rem">Add a word</h2>
+        <span class="spacer"></span>
+        <button class="btn ghost small" id="bulk-toggle" type="button">Paste a list</button>
+      </div>
+      <form id="add-form" class="row" autocomplete="off">
+        <label class="field"><span class="label">Word</span><input type="text" id="add-word" placeholder="e.g. resilient" required></label>
+        <label class="field"><span class="label">Meaning (English)</span><input type="text" id="add-meaning" placeholder="e.g. recovers quickly; tough"></label>
+        <label class="field"><span class="label">ความหมาย (Thai)</span><input type="text" id="add-thai" lang="th" placeholder="เช่น ฟื้นตัวเร็ว, ยืดหยุ่น" style="font-family:var(--f-thai)"></label>
+        <label class="field"><span class="label">How to say it (optional)</span><input type="text" id="add-pron" placeholder="e.g. ri-ZIL-yent or รี-ซิล-เยิ่นท์"></label>
+        <label class="field" style="flex-basis:100%"><span class="label">Example sentence (optional)</span><input type="text" id="add-example" placeholder="e.g. Kids are surprisingly resilient."></label>
+        <button class="btn primary" type="submit">Add word</button>
+        <span class="muted" style="font-size:.85rem">Fill in the English meaning, the Thai one, or both. Press Enter to add.</span>
+      </form>
+      <form id="bulk-form" hidden>
+        <div class="field"><span class="label">One word per line: word - meaning - ความหมาย</span>
+          <textarea id="bulk-text" placeholder="ubiquitous - found everywhere - มีอยู่ทั่วไป&#10;meticulous - very careful about details - พิถีพิถัน&#10;candid - จริงใจ ตรงไปตรงมา"></textarea></div>
+        <div class="row" style="margin-top:10px"><button class="btn primary" type="submit">Add all</button><span class="muted" id="bulk-preview" style="font-size:.88rem"></span></div>
+      </form>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <div class="field"><input type="search" id="search" placeholder="Search your words" aria-label="Search your words"></div>
+      <select id="sort" aria-label="Sort words" style="width:auto">
+        <option value="new">Newest first</option>
+        <option value="az">A to Z</option>
+        <option value="weak">Weakest first</option>
+      </select>
+    </div>
+    <div id="examples-note" style="margin-top:12px" hidden></div>
+    <div id="word-list" style="margin-top:12px"></div>
+  </section>
+
+  <p class="foot" id="foot"></p>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const DAY = 864e5, MIN = 6e4;
+  const WAIT = [0, 0, 1, 3, 7, 16]; // days until next review for Leitner boxes 1-5
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const norm = (s) => String(s || "").toLowerCase().normalize("NFKC").replace(/[.,!?;:"'()\[\]]/g, " ").replace(/\s+/g, " ").trim();
+
+  const notReady = () => Promise.reject({ code: "unavailable" });
+  let cards = [], loaded = false, tab = "review";
+  let store = { kind: "db", add: notReady, update: notReady, remove: notReady };
+  const byId = (id) => cards.find((c) => c.id === id);
+  const isDue = (c) => (c.due ?? 0) <= Date.now();
+  const boxOf = (c) => Math.min(5, Math.max(1, c.box || 1));
+
+  // ---------- theme: Auto follows the device, or pick Light / Dark ----------
+  const root = document.documentElement;
+  const hostTheme = root.getAttribute("data-theme");
+  const THEME_ICONS = {
+    auto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg>',
+    light: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    dark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z" fill="currentColor"/></svg>',
+  };
+  const THEME_NAMES = { auto: "Theme: follow my device", light: "Theme: light", dark: "Theme: dark" };
+  let theme = "auto";
+  try { theme = localStorage.getItem("wordbox.theme") || "auto"; } catch {}
+  function applyTheme() {
+    if (theme === "auto") { if (hostTheme) root.setAttribute("data-theme", hostTheme); else root.removeAttribute("data-theme"); }
+    else root.setAttribute("data-theme", theme);
+    const b = $("#theme-btn"); b.innerHTML = THEME_ICONS[theme]; b.title = THEME_NAMES[theme]; b.setAttribute("aria-label", THEME_NAMES[theme] + ". Click to change.");
+  }
+  $("#theme-btn").addEventListener("click", () => {
+    theme = { auto: "dark", dark: "light", light: "auto" }[theme] || "auto";
+    try { localStorage.setItem("wordbox.theme", theme); } catch {}
+    applyTheme(); toast(THEME_NAMES[theme]);
+  });
+  applyTheme();
+
+  // ---------- voice (the browser's built-in text-to-speech) ----------
+  const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+  const prefs = { auto: true, slow: false };
+  try { Object.assign(prefs, JSON.parse(localStorage.getItem("wordbox.voice") || "{}")); } catch {}
+  const savePrefs = () => { try { localStorage.setItem("wordbox.voice", JSON.stringify(prefs)); } catch {} };
+  let voices = [];
+  const loadVoices = () => { try { voices = speechSynthesis.getVoices() || []; } catch { voices = []; } };
+  if (canSpeak) { loadVoices(); try { speechSynthesis.addEventListener("voiceschanged", loadVoices); } catch {} }
+  function pickVoice(lang) {
+    const pre = lang.slice(0, 2).toLowerCase();
+    const list = voices.filter((v) => v.lang && v.lang.replace("_", "-").toLowerCase().startsWith(pre));
+    const exact = list.filter((v) => v.lang.replace("_", "-").toLowerCase() === lang.toLowerCase());
+    const pool = exact.length ? exact : list;
+    return pool.find((v) => /natural|enhanced|premium|google|samantha|siri/i.test(v.name)) || pool[0] || null;
+  }
+  const hasThaiVoice = () => !voices.length || !!pickVoice("th-TH");
+  function speak(text, lang = "en-US", btn) {
+    if (!canSpeak || !text) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang; const v = pickVoice(lang); if (v) u.voice = v;
+      u.rate = prefs.slow ? 0.65 : 0.95;
+      if (btn) { btn.classList.add("playing"); const off = () => btn.classList.remove("playing"); u.onend = off; u.onerror = off; }
+      speechSynthesis.speak(u);
+    } catch {}
+  }
+  const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z" fill="currentColor" stroke-width="1.5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  function sayBtn(text, lang = "en-US", size = "") {
+    if (!canSpeak || !text || (lang.startsWith("th") && !hasThaiVoice())) return "";
+    return `<button type="button" class="say ${size}" data-say="${esc(text)}" data-lang="${lang}" aria-label="Listen to ${esc(text)}" title="Listen">${ICON}</button>`;
+  }
+  // capture phase so a speaker button inside a card doesn't also flip it
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest && e.target.closest("[data-say]");
+    if (!b) return;
+    e.stopPropagation(); e.preventDefault();
+    speak(b.dataset.say, b.dataset.lang, b);
+  }, true);
+
+  function toast(msg) {
+    const t = $("#toast"); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 2400);
+  }
+  async function safe(p, okMsg) {
+    try { await p; if (okMsg) toast(okMsg); return true; }
+    catch (e) {
+      const code = e && e.code;
+      toast(code === "quota_exceeded" ? "Your box is full. Delete some words to add more." :
+            code === "invalid_argument" ? "You can view these words but not change them." :
+            "That didn't save. Check your connection and try again.");
+      return false;
+    }
+  }
+
+  // ---------- storage: shared db when available, this browser otherwise ----------
+  async function initStore() {
+    let db = null;
+    try { db = window.claude?.use ? await window.claude.use("db") : null; } catch { db = null; }
+    if (db) {
+      const col = db.collection("cards");
+      return {
+        kind: "db",
+        subscribe(fn) {
+          return col.onSnapshot((s) => fn(s.docs.map((d) => ({ ...d.data(), id: d.id }))),
+            () => toast("Lost connection to your words. Reload the page."));
+        },
+        add: (c) => col.add(c),
+        update: (id, p) => col.doc(id).update(p),
+        remove: (id) => col.doc(id).delete(),
+      };
+    }
+    // the Mac app hands over its saved words and takes each change back to save to disk
+    const native = window.webkit?.messageHandlers?.wordbox;
+    const KEY = "wordbox.cards";
+    let list = [];
+    if (native) list = Array.isArray(window.__wordboxCards) ? window.__wordboxCards.slice() : [];
+    else { try { list = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { list = []; } }
+    let listener = () => {};
+    const save = () => {
+      if (native) { try { native.postMessage({ type: "save", cards: list }); } catch {} }
+      else { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch {} }
+      listener(list.slice());
+    };
+    return {
+      kind: native ? "native" : "local",
+      subscribe(fn) { listener = fn; fn(list.slice()); return () => {}; },
+      async add(c) { list.push({ ...c, id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }); save(); },
+      async update(id, p) { list = list.map((c) => (c.id === id ? { ...c, ...p } : c)); save(); },
+      async remove(id) { list = list.filter((c) => c.id !== id); save(); },
+    };
+  }
+
+  function newCard(word, meaning, example, thai, pron) {
+    return { pron: (pron || "").trim(), word: word.trim(), meaning: (meaning || "").trim(), thai: (thai || "").trim(), example: (example || "").trim(), box: 1, due: 0, created: Date.now(), right: 0, wrong: 0 };
+  }
+
+  // ---------- header + tabs ----------
+  function renderStats() {
+    const due = cards.filter(isDue).length;
+    $("#st-total").textContent = cards.length;
+    $("#st-due").textContent = due;
+    $("#st-learned").textContent = cards.filter((c) => boxOf(c) >= 4).length;
+    $("#tab-due").textContent = due ? due : "";
+    $("#foot").textContent = store?.kind === "local"
+      ? "Your words are saved in this browser only."
+      : store?.kind === "native" ? "Your words are saved on this Mac."
+      : "Your words are saved with this page, so they're here on any device you open it from.";
+  }
+  function setTab(t) {
+    tab = t;
+    document.querySelectorAll("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+    ["review", "quiz", "words"].forEach((v) => ($("#view-" + v).hidden = v !== t));
+    try { localStorage.setItem("wordbox.tab", t); } catch {}
+    if (t === "review") renderReview();
+    if (t === "quiz") renderQuiz();
+  }
+  document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
+
+  const emptyBox = (where) => `
+    <div class="panel empty">
+      <h2>${loaded ? "Your box is empty" : "Opening your box…"}</h2>
+      <p>${loaded ? `Add your first word in the Words tab. Then come back here to ${where}.` : "Fetching your words."}</p>
+      ${loaded ? `<button class="btn primary" data-go="words">Add words</button>` : ""}
+    </div>`;
+  document.addEventListener("click", (e) => { const g = e.target.closest("[data-go]"); if (g) { setTab(g.dataset.go); if (g.dataset.go === "words") $("#add-word").focus(); } });
+
+  // ---------- REVIEW ----------
+  const rv = { queue: null, i: 0, flipped: false, dir: "word", seen: 0, again: 0 };
+  try { rv.dir = localStorage.getItem("wordbox.dir") || "word"; } catch {}
+
+  function startReview(ids) {
+    rv.queue = shuffle(ids); rv.i = 0; rv.flipped = false; rv.seen = 0; rv.again = 0;
+    renderReview();
+  }
+  function cardFaces(c) {
+    const word = `<div class="wordline"><span class="big">${esc(c.word)}</span>${sayBtn(c.word)}</div>${c.pron ? `<div class="pron">${esc(c.pron)}</div>` : ""}`;
+    const en = c.meaning ? `<div class="mid">${esc(c.meaning)}</div>` : "";
+    const th = c.thai ? `<div class="th" lang="th">${esc(c.thai)} ${sayBtn(c.thai, "th-TH", "sm")}</div>` : "";
+    const ex = c.example ? `<div class="ex">“${esc(c.example)}”</div>` : "";
+    if (rv.dir === "meaning") return [en || th, word + (en ? th : "") + ex];
+    if (rv.dir === "thai") return [c.thai ? `<div class="wordline"><span class="big th" lang="th">${esc(c.thai)}</span>${sayBtn(c.thai, "th-TH")}</div>` : en, word + (c.thai ? en : "") + ex];
+    return [word, en + th + ex];
+  }
+  const sideName = (d) => ({ word: "Word", meaning: "Meaning", thai: "ภาษาไทย" }[d]);
+  function renderReview() {
+    const el = $("#view-review");
+    if (!cards.length) { el.innerHTML = emptyBox("review them"); return; }
+
+    if (!rv.queue) {
+      const due = cards.filter(isDue);
+      const next = cards.filter((c) => !isDue(c)).sort((a, b) => a.due - b.due)[0];
+      const when = next ? new Date(next.due) : null;
+      const counts = [1, 2, 3, 4, 5].map((b) => cards.filter((c) => boxOf(c) === b).length);
+      el.innerHTML = `
+        <div class="panel">
+          ${due.length
+            ? `<h2 style="font-size:1.5rem">${due.length} ${due.length === 1 ? "word is" : "words are"} ready to review</h2>
+               <p class="muted" style="margin:0">Look at the card, try to recall the answer, then flip it and say how it went.</p>`
+            : `<h2 style="font-size:1.5rem">You're all caught up</h2>
+               <p class="muted" style="margin:0">Nothing is due right now.${when ? ` Next word comes back ${when.toDateString() === new Date().toDateString() ? "at " + when.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "on " + when.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" })}.` : ""}</p>`}
+          <div class="row">
+            <span class="label">Show first</span>
+            <div class="seg" role="group" aria-label="Which side to show first">
+              <button type="button" data-dir="word" aria-pressed="${rv.dir === "word"}">Word</button>
+              <button type="button" data-dir="meaning" aria-pressed="${rv.dir === "meaning"}">English meaning</button>
+              <button type="button" data-dir="thai" aria-pressed="${rv.dir === "thai"}">Thai meaning</button>
+            </div>
+          </div>
+          ${canSpeak ? `<div class="row">
+            <span class="label">Voice</span>
+            <label class="check"><input type="checkbox" id="vc-auto" ${prefs.auto ? "checked" : ""}> Say each word out loud</label>
+            <div class="seg" role="group" aria-label="Speaking speed">
+              <button type="button" data-speed="normal" aria-pressed="${!prefs.slow}">Normal</button>
+              <button type="button" data-speed="slow" aria-pressed="${prefs.slow}">Slow</button>
+            </div>
+            <button type="button" class="btn ghost small" id="vc-test">${ICON.replace('aria-hidden="true"', 'aria-hidden="true" width="16" height="16"')} Test voice</button>
+          </div>` : `<p class="muted" style="margin:0;font-size:.9rem">Your browser can't read words aloud here. Try Chrome, Safari or Edge.</p>`}
+          <div class="row">
+            ${due.length ? `<button class="btn primary" id="rv-start">Start review</button>` : ""}
+            <button class="btn${due.length ? "" : " primary"}" id="rv-all">Review all ${cards.length} words</button>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:16px">
+          <span class="label">Your boxes</span>
+          <p class="muted" style="margin:0;font-size:.92rem">Every word starts in box 1. Each time you remember it, it moves up a box and waits longer before coming back: box 2 after 1 day, box 3 after 3 days, box 4 after a week, box 5 after about two weeks. Forget it and it goes back to box 1.</p>
+          <div class="boxes">
+            ${counts.map((n, i) => `<div><div class="label">Box ${i + 1}</div><b>${n}</b><span class="pips">${[1, 2, 3, 4, 5].map((b) => `<i class="${b <= i + 1 ? "on" : ""}"></i>`).join("")}</span></div>`).join("")}
+          </div>
+        </div>`;
+      el.querySelectorAll("[data-dir]").forEach((b) => b.addEventListener("click", () => { rv.dir = b.dataset.dir; try { localStorage.setItem("wordbox.dir", rv.dir); } catch {} renderReview(); }));
+      $("#rv-start")?.addEventListener("click", () => startReview(due.map((c) => c.id)));
+      $("#vc-auto")?.addEventListener("change", (e) => { prefs.auto = e.target.checked; savePrefs(); });
+      el.querySelectorAll("[data-speed]").forEach((b) => b.addEventListener("click", () => { prefs.slow = b.dataset.speed === "slow"; savePrefs(); renderReview(); }));
+      $("#vc-test")?.addEventListener("click", (e) => speak(cards[0]?.word || "Hello", "en-US", e.currentTarget));
+      $("#rv-all").addEventListener("click", () => startReview(cards.map((c) => c.id)));
+      return;
+    }
+
+    // skip cards deleted mid-session
+    while (rv.i < rv.queue.length && !byId(rv.queue[rv.i])) rv.i++;
+    if (rv.i >= rv.queue.length) {
+      el.innerHTML = `
+        <div class="panel empty">
+          <span class="label">Session done</span>
+          <div class="score">${rv.seen}</div>
+          <p>${rv.seen === 1 ? "card" : "cards"} reviewed${rv.again ? `, ${rv.again} sent back to box 1` : ""}.</p>
+          <div class="row" style="justify-content:center">
+            <button class="btn primary" id="rv-done">Back to overview</button>
+            <button class="btn" data-go="quiz">Take a quiz</button>
+          </div>
+        </div>`;
+      $("#rv-done").addEventListener("click", () => { rv.queue = null; renderReview(); });
+      return;
+    }
+    const c = byId(rv.queue[rv.i]);
+    const [front, back] = cardFaces(c);
+    const pct = Math.round((rv.i / rv.queue.length) * 100);
+    el.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="row"><span class="label" style="font-variant-numeric:tabular-nums">Card ${rv.i + 1} of ${rv.queue.length}</span><span class="spacer"></span><button class="btn ghost small" id="rv-stop">End session</button></div>
+        <div class="progress"><i style="width:${pct}%"></i></div>
+        <div class="stage">
+          <div class="card${rv.flipped ? " flipped" : ""}" id="rv-card" role="button" tabindex="0" aria-label="Flip card">
+            <div class="face front"><span class="corner">${sideName(rv.dir)}</span><span class="corner r">Box ${boxOf(c)}</span>${front}<span class="hint">Tap or press <kbd>Space</kbd> to flip${canSpeak ? " · <kbd>S</kbd> to listen" : ""}</span></div>
+            <div class="face back"><span class="corner">${rv.dir === "word" ? "Meaning · ความหมาย" : "Word"}</span><span class="corner r">Box ${boxOf(c)}</span>${back}</div>
+          </div>
+        </div>
+        <div class="rate" ${rv.flipped ? "" : "hidden"}>
+          <button class="btn again" data-rate="again">Forgot it <small><kbd>1</kbd> back to box 1</small></button>
+          <button class="btn good" data-rate="good">Got it <small><kbd>2</kbd> up one box</small></button>
+          <button class="btn easy" data-rate="easy">Easy <small><kbd>3</kbd> up two boxes</small></button>
+        </div>
+        ${rv.flipped ? "" : `<button class="btn primary" id="rv-flip">Show answer</button>`}
+      </div>`;
+    $("#rv-card").addEventListener("click", flip);
+    const key = rv.i + ":" + c.id;
+    if (prefs.auto && rv.dir === "word" && rv.said !== key) { rv.said = key; speak(c.word); }
+    $("#rv-flip")?.addEventListener("click", flip);
+    $("#rv-stop").addEventListener("click", () => { rv.queue = null; renderReview(); });
+    el.querySelectorAll("[data-rate]").forEach((b) => b.addEventListener("click", () => rate(b.dataset.rate)));
+  }
+  function flip() {
+    rv.flipped = !rv.flipped;
+    $("#rv-card")?.classList.toggle("flipped", rv.flipped);
+    const r = document.querySelector("#view-review .rate"); if (r) r.hidden = !rv.flipped;
+    $("#rv-flip")?.remove();
+    const c = rv.queue && byId(rv.queue[rv.i]);
+    if (c && rv.flipped && prefs.auto && rv.dir !== "word") speak(c.word);
+  }
+  function rate(r) {
+    const c = byId(rv.queue[rv.i]); if (!c) return;
+    let box = boxOf(c);
+    if (r === "again") { box = 1; rv.again++; rv.queue.push(c.id); }
+    else box = Math.min(5, box + (r === "easy" ? 2 : 1));
+    const due = r === "again" ? Date.now() + 10 * MIN : Date.now() + WAIT[box] * DAY;
+    safe(store.update(c.id, { box, due }));
+    rv.seen++; rv.i++; rv.flipped = false;
+    renderReview();
+  }
+
+  // ---------- QUIZ ----------
+  const qz = { setup: { n: 10, dir: "word", mode: "choice" }, qs: null, i: 0, answered: null, results: [] };
+  try { Object.assign(qz.setup, JSON.parse(localStorage.getItem("wordbox.quiz") || "{}")); } catch {}
+
+  // [what is asked, what is the answer] for each quiz direction
+  const QD = {
+    word: [(c) => c.word, (c) => c.meaning],
+    th: [(c) => c.word, (c) => c.thai],
+    meaning: [(c) => c.meaning, (c) => c.word],
+    thword: [(c) => c.thai, (c) => c.word],
+  };
+  const fits = (c, d) => !!(QD[d][0](c) && QD[d][1](c));
+  function quizPool(dir) { return cards.filter((c) => dir === "mixed" ? Object.keys(QD).some((d) => fits(c, d)) : fits(c, dir)); }
+  function buildQuiz() {
+    const { n, dir, mode } = qz.setup;
+    const all = quizPool(dir);
+    const pool = shuffle(all).slice(0, n === "all" ? all.length : n);
+    qz.qs = pool.map((c) => {
+      const d = dir === "mixed" ? shuffle(Object.keys(QD).filter((k) => fits(c, k)))[0] : dir;
+      const ask = QD[d][0](c), answer = QD[d][1](c);
+      let options = null;
+      if (mode === "choice" && cards.length >= 2) {
+        const others = shuffle(cards.filter((o) => o.id !== c.id).map((o) => QD[d][1](o)).filter(Boolean))
+          .filter((v, i, a) => norm(v) !== norm(answer) && a.findIndex((x) => norm(x) === norm(v)) === i).slice(0, 3);
+        options = shuffle([answer, ...others]);
+      }
+      return { id: c.id, d, ask, answer, options };
+    });
+    qz.i = 0; qz.answered = null; qz.results = [];
+    renderQuiz();
+  }
+  function typedMatches(given, answer) {
+    const g = norm(given); if (!g) return false;
+    if (g === norm(answer)) return true;
+    return answer.split(/[,;/]| or /).map(norm).filter(Boolean).some((p) => p === g);
+  }
+  function answer(given) {
+    if (qz.answered) return;
+    const q = qz.qs[qz.i];
+    const ok = q.options ? given === q.answer : typedMatches(given, q.answer);
+    qz.answered = { given, ok };
+    record(q, ok);
+    renderQuiz();
+  }
+  function record(q, ok, overridePrev) {
+    const c = byId(q.id); if (!c) return;
+    const patch = ok
+      ? { right: (c.right || 0) + 1, wrong: Math.max(0, (c.wrong || 0) - (overridePrev ? 1 : 0)) }
+      : { wrong: (c.wrong || 0) + 1, box: 1, due: Date.now() };
+    if (ok && overridePrev && q.prevBox) { patch.box = q.prevBox; patch.due = q.prevDue; }
+    if (!ok) { q.prevBox = boxOf(c); q.prevDue = c.due ?? 0; }
+    qz.results[qz.i] = { id: q.id, ok };
+    safe(store.update(c.id, patch));
+  }
+  function nextQ() { qz.i++; qz.answered = null; renderQuiz(); }
+
+  function renderQuiz() {
+    const el = $("#view-quiz");
+    if (!cards.length) { el.innerHTML = emptyBox("quiz yourself"); return; }
+    const s = qz.setup;
+    if (!QD[s.dir] && s.dir !== "mixed") s.dir = "word";
+    const poolN = quizPool(s.dir).length;
+    if (s.n !== "all" && s.n >= poolN) s.n = "all";
+    if (!qz.qs) {
+      const segBtn = (key, val, label) => `<button type="button" data-k="${key}" data-v="${val}" aria-pressed="${String(s[key]) === String(val)}">${label}</button>`;
+      el.innerHTML = `
+        <div class="panel">
+          <h2 style="font-size:1.5rem">Quiz yourself</h2>
+          <p class="muted" style="margin:0">Questions are picked at random from your ${cards.length} ${cards.length === 1 ? "word" : "words"}. Anything you miss goes back to box 1 so it shows up in your next review.</p>
+          <div class="row"><span class="label" style="width:120px">Ask me</span>
+            <div class="seg">${segBtn("dir", "word", "Word → English")}${segBtn("dir", "th", "Word → ไทย")}${segBtn("dir", "meaning", "English → word")}${segBtn("dir", "thword", "ไทย → word")}${segBtn("dir", "mixed", "Mixed")}</div></div>
+          <div class="row"><span class="label" style="width:120px">Questions</span>
+            <div class="seg">${[5, 10, 20].filter((n) => n < poolN).map((n) => segBtn("n", n, n)).join("")}${segBtn("n", "all", "All " + poolN)}</div></div>
+          ${poolN < cards.length ? `<p class="muted" style="margin:0;font-size:.9rem">${poolN ? `${poolN} of your ${cards.length} words have this meaning filled in.` : "None of your words have this meaning yet. Add it in the Words tab, or pick another option."}</p>` : ""}
+          <div class="row"><span class="label" style="width:120px">Answer by</span>
+            <div class="seg">${segBtn("mode", "choice", "Picking from 4")}${segBtn("mode", "type", "Typing it")}</div></div>
+          ${s.mode === "choice" && cards.length < 4 ? `<p class="muted" style="margin:0;font-size:.9rem">Add at least 4 words for a full set of choices. You'll see fewer for now.</p>` : ""}
+          <div><button class="btn primary" id="qz-go" ${poolN ? "" : "disabled"}>Start quiz</button></div>
+        </div>`;
+      el.querySelectorAll("[data-k]").forEach((b) => b.addEventListener("click", () => {
+        s[b.dataset.k] = b.dataset.k === "n" && b.dataset.v !== "all" ? Number(b.dataset.v) : b.dataset.v;
+        try { localStorage.setItem("wordbox.quiz", JSON.stringify(s)); } catch {}
+        renderQuiz();
+      }));
+      $("#qz-go").addEventListener("click", buildQuiz);
+      return;
+    }
+
+    if (qz.i >= qz.qs.length) {
+      const right = qz.results.filter((r) => r && r.ok).length;
+      const missed = qz.results.filter((r) => r && !r.ok).map((r) => byId(r.id)).filter(Boolean);
+      el.innerHTML = `
+        <div class="panel empty">
+          <span class="label">Your score</span>
+          <div class="score">${right}<span class="muted" style="font-size:1.6rem"> / ${qz.qs.length}</span></div>
+          <p>${right === qz.qs.length ? "Perfect round." : right / qz.qs.length >= 0.7 ? "Solid. The ones you missed are queued for review." : "The ones you missed are queued for review. Flip through them, then try again."}</p>
+          <div class="row" style="justify-content:center">
+            ${missed.length ? `<button class="btn primary" id="qz-review">Review the ${missed.length} I missed</button>` : ""}
+            <button class="btn${missed.length ? "" : " primary"}" id="qz-again">New quiz</button>
+          </div>
+        </div>
+        ${missed.length ? `<div class="list" style="margin-top:16px">${missed.map((c) => `<div class="item"><div><div class="w">${esc(c.word)}</div><div class="m">${esc(c.meaning)}</div>${c.thai ? `<div class="th" lang="th">${esc(c.thai)}</div>` : ""}</div></div>`).join("")}</div>` : ""}`;
+      $("#qz-review")?.addEventListener("click", () => { qz.qs = null; setTab("review"); startReview(missed.map((c) => c.id)); });
+      $("#qz-again").addEventListener("click", () => { qz.qs = null; renderQuiz(); });
+      return;
+    }
+
+    const q = qz.qs[qz.i], a = qz.answered;
+    const pct = Math.round((qz.i / qz.qs.length) * 100);
+    const score = qz.results.filter((r) => r && r.ok).length;
+    let body;
+    if (q.options) {
+      body = `<div class="options">${q.options.map((o, k) => {
+        const cls = a ? (o === q.answer ? " right" : o === a.given ? " wrong" : "") : "";
+        return `<button class="btn opt${cls}" data-opt="${k}" ${a ? "disabled style='opacity:1'" : ""}><kbd>${k + 1}</kbd><span${q.d === "th" ? ' class="th" lang="th"' : ""}>${esc(o)}</span></button>`;
+      }).join("")}</div>`;
+    } else {
+      body = `<form id="qz-type" class="row" autocomplete="off">
+          <div class="field"><input type="text" id="qz-input" placeholder="${q.d === "word" ? "Type the meaning" : q.d === "th" ? "พิมพ์ความหมายภาษาไทย" : "Type the word"}" ${q.d === "th" ? 'lang="th" style="font-family:var(--f-thai)"' : ""} ${a ? `value="${esc(a.given)}" disabled` : ""}></div>
+          ${a ? "" : `<button class="btn primary" type="submit">Check</button><button class="btn ghost" type="button" id="qz-skip">I don't know</button>`}
+        </form>`;
+    }
+    let fb = "";
+    if (a) {
+      fb = a.ok
+        ? `<div class="feedback ok">Correct${q.options ? "" : ` <span>— ${esc(q.answer)}</span>`}${q.d === "meaning" || q.d === "thword" ? sayBtn(q.answer, "en-US", "sm") : ""}</div>`
+        : `<div class="feedback no">Not quite. <span>The answer is <b>${esc(q.answer)}</b>.</span>${q.d === "meaning" || q.d === "thword" ? sayBtn(q.answer, "en-US", "sm") : ""}
+            ${!q.options && a.given ? `<button class="btn small" id="qz-override" style="margin-left:8px">I was right</button>` : ""}</div>`;
+    }
+    el.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="row"><span class="label" style="font-variant-numeric:tabular-nums">Question ${qz.i + 1} of ${qz.qs.length} · ${score} right</span><span class="spacer"></span><button class="btn ghost small" id="qz-stop">End quiz</button></div>
+        <div class="progress"><i style="width:${pct}%"></i></div>
+        <div class="card" style="cursor:default;min-height:180px">
+          <div class="face"><span class="corner">${q.d === "word" ? "What does this mean?" : q.d === "th" ? "แปลว่าอะไร?" : "Which word is this?"}</span>
+            <div class="${q.d === "word" || q.d === "th" ? "big" : q.d === "thword" ? "big th" : "mid"}" ${q.d === "thword" ? 'lang="th"' : ""}>${esc(q.ask)}</div>${q.d === "word" || q.d === "th" ? sayBtn(q.ask) : ""}</div>
+        </div>
+        ${body}
+        ${fb}
+        ${a ? `<div><button class="btn primary" id="qz-next">${qz.i + 1 === qz.qs.length ? "See my score" : "Next question"} <kbd>Enter</kbd></button></div>` : ""}
+      </div>`;
+    el.querySelectorAll("[data-opt]").forEach((b) => b.addEventListener("click", () => answer(q.options[+b.dataset.opt])));
+    $("#qz-type")?.addEventListener("submit", (e) => { e.preventDefault(); const v = $("#qz-input").value; if (v.trim()) answer(v); });
+    $("#qz-skip")?.addEventListener("click", () => answer(""));
+    $("#qz-override")?.addEventListener("click", () => { qz.answered = { ...a, ok: true }; record(q, true, true); renderQuiz(); });
+    $("#qz-next")?.addEventListener("click", nextQ);
+    $("#qz-stop").addEventListener("click", () => { qz.qs = null; renderQuiz(); });
+    if (!a) $("#qz-input")?.focus(); else $("#qz-next")?.focus();
+    const qkey = qz.i + ":" + q.id;
+    if (prefs.auto && qz.said !== qkey) {
+      if (!a && (q.d === "word" || q.d === "th")) { qz.said = qkey; speak(q.ask); }
+      else if (a && (q.d === "meaning" || q.d === "thword")) { qz.said = qkey; speak(q.answer); }
+    }
+  }
+
+  // ---------- WORDS ----------
+  let editing = null, confirmDel = null;
+  $("#bulk-toggle").addEventListener("click", () => {
+    const show = $("#bulk-form").hidden;
+    $("#bulk-form").hidden = !show; $("#add-form").hidden = show;
+    $("#bulk-toggle").textContent = show ? "Add one at a time" : "Paste a list";
+    (show ? $("#bulk-text") : $("#add-word")).focus();
+  });
+  $("#add-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const w = $("#add-word").value, m = $("#add-meaning").value, x = $("#add-example").value, th = $("#add-thai").value, pr = $("#add-pron").value;
+    if (!w.trim()) return;
+    if (!m.trim() && !th.trim()) { toast("Add an English or Thai meaning"); $("#add-meaning").focus(); return; }
+    const dup = cards.find((c) => norm(c.word) === norm(w));
+    if (await safe(store.add(newCard(w, m, x, th, pr)), dup ? `Added. You already had “${dup.word}” too.` : `Added “${w.trim()}”`)) {
+      $("#add-word").value = $("#add-meaning").value = $("#add-example").value = $("#add-thai").value = $("#add-pron").value = "";
+      $("#add-word").focus();
+    }
+  });
+  function parseBulk(text) {
+    return text.split(/\n/).map((l) => l.trim()).filter(Boolean).map((l) => {
+      const m = l.match(/^(.+?)\s*(?:\t|\s[-–—=|]\s|[:=|])\s*(.+)$/);
+      if (!m) return null;
+      const rest = m[2].split(/\t|\s[-–—=|]\s|\s*\|\s*/).map((x) => x.trim()).filter(Boolean);
+      const isThai = (x) => /[\u0E00-\u0E7F]/.test(x);
+      const thai = rest.filter(isThai).join(", ");
+      const meaning = rest.filter((x) => !isThai(x)).join(", ");
+      return { word: m[1], meaning, thai };
+    }).filter(Boolean);
+  }
+  $("#bulk-text").addEventListener("input", () => {
+    const lines = $("#bulk-text").value.split("\n").filter((l) => l.trim()).length;
+    const n = parseBulk($("#bulk-text").value).length;
+    $("#bulk-preview").textContent = lines ? `${n} ${n === 1 ? "word" : "words"} ready${lines > n ? `, ${lines - n} ${lines - n === 1 ? "line" : "lines"} without a meaning will be skipped` : ""}` : "";
+  });
+  $("#bulk-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const items = parseBulk($("#bulk-text").value);
+    if (!items.length) { toast("Write each line as: word - meaning - ความหมาย"); return; }
+    let ok = 0;
+    for (const it of items) { if (await safe(store.add(newCard(it.word, it.meaning, "", it.thai)))) ok++; else break; }
+    if (ok) { toast(`Added ${ok} ${ok === 1 ? "word" : "words"}`); $("#bulk-text").value = ""; $("#bulk-preview").textContent = ""; }
+  });
+  $("#search").addEventListener("input", renderWords);
+  $("#sort").addEventListener("change", renderWords);
+
+  function renderWords() {
+    const list = $("#word-list");
+    const examples = cards.filter((c) => c.sample);
+    const note = $("#examples-note");
+    note.hidden = !examples.length;
+    if (examples.length) {
+      note.innerHTML = `<div class="notice"><span>The ${examples.length} words marked <span class="chip" style="margin:0">example</span> are there so you can try things out.</span><span class="spacer"></span><button class="btn small" id="clear-examples">Remove examples</button></div>`;
+      $("#clear-examples").addEventListener("click", async () => { for (const c of examples) if (!(await safe(store.remove(c.id)))) break; toast("Examples removed"); });
+    }
+    if (!loaded) { list.innerHTML = `<div class="panel empty"><p>Opening your box…</p></div>`; return; }
+    if (!cards.length) { list.innerHTML = `<div class="panel empty"><h2>No words yet</h2><p>Type a word and its meaning above. Have a list already? Use “Paste a list” to add them all at once.</p></div>`; return; }
+    const q = norm($("#search").value);
+    let rows = cards.filter((c) => !q || norm(c.word).includes(q) || norm(c.meaning).includes(q) || norm(c.thai).includes(q));
+    const sort = $("#sort").value;
+    rows.sort(sort === "az" ? (a, b) => a.word.localeCompare(b.word)
+      : sort === "weak" ? (a, b) => boxOf(a) - boxOf(b) || (b.wrong || 0) - (a.wrong || 0)
+      : (a, b) => (b.created || 0) - (a.created || 0));
+    if (!rows.length) { list.innerHTML = `<div class="panel empty"><p>No words match “${esc($("#search").value)}”.</p></div>`; return; }
+    list.innerHTML = `<div class="list">${rows.map((c) => {
+      if (editing === c.id) return `
+        <form class="item editing" data-edit="${c.id}" autocomplete="off">
+          <div class="row">
+            <label class="field"><span class="label">Word</span><input type="text" name="word" value="${esc(c.word)}" required></label>
+            <label class="field"><span class="label">Meaning (English)</span><input type="text" name="meaning" value="${esc(c.meaning)}"></label>
+            <label class="field"><span class="label">ความหมาย (Thai)</span><input type="text" name="thai" lang="th" value="${esc(c.thai)}" style="font-family:var(--f-thai)"></label>
+            <label class="field"><span class="label">How to say it</span><input type="text" name="pron" value="${esc(c.pron)}"></label>
+            <label class="field" style="flex-basis:100%"><span class="label">Example</span><input type="text" name="example" value="${esc(c.example)}"></label>
+          </div>
+          <div class="row"><button class="btn primary small" type="submit">Save</button><button class="btn ghost small" type="button" data-cancel>Cancel</button></div>
+        </form>`;
+      const pips = [1, 2, 3, 4, 5].map((b) => `<i class="${b <= boxOf(c) ? "on" : ""}"></i>`).join("");
+      return `
+        <div class="item">
+          <div style="min-width:0">
+            <div class="w">${esc(c.word)}${c.pron ? `<span class="pron">${esc(c.pron)}</span>` : ""}${sayBtn(c.word, "en-US", "sm")}${c.sample ? `<span class="chip">example</span>` : ""}${isDue(c) ? `<span class="chip due">due</span>` : ""}</div>
+            ${c.meaning ? `<div class="m">${esc(c.meaning)}</div>` : ""}
+            ${c.thai ? `<div class="th" lang="th">${esc(c.thai)}</div>` : ""}
+            ${c.example ? `<div class="e">“${esc(c.example)}”</div>` : ""}
+          </div>
+          <div class="side">
+            <span class="pips" title="Box ${boxOf(c)} of 5" aria-label="Box ${boxOf(c)} of 5">${pips}</span>
+            <div class="acts">${confirmDel === c.id
+              ? `<button class="btn small" data-del-yes="${c.id}" style="color:var(--bad);border-color:var(--bad)">Delete</button><button class="btn ghost small" data-del-no>Keep</button>`
+              : `<button class="btn ghost small" data-edit-btn="${c.id}">Edit</button><button class="btn ghost small" data-del="${c.id}">Delete</button>`}</div>
+          </div>
+        </div>`;
+    }).join("")}</div>`;
+    list.querySelectorAll("[data-edit-btn]").forEach((b) => b.addEventListener("click", () => { editing = b.dataset.editBtn; confirmDel = null; renderWords(); list.querySelector("[data-edit] input")?.focus(); }));
+    list.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => { confirmDel = b.dataset.del; renderWords(); }));
+    list.querySelectorAll("[data-del-no]").forEach((b) => b.addEventListener("click", () => { confirmDel = null; renderWords(); }));
+    list.querySelectorAll("[data-del-yes]").forEach((b) => b.addEventListener("click", async () => { const c = byId(b.dataset.delYes); confirmDel = null; await safe(store.remove(b.dataset.delYes), c ? `Deleted “${c.word}”` : "Deleted"); }));
+    list.querySelectorAll("[data-cancel]").forEach((b) => b.addEventListener("click", () => { editing = null; renderWords(); }));
+    list.querySelectorAll("[data-edit]").forEach((f) => f.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = f.dataset.edit, fd = new FormData(f);
+      const patch = { word: String(fd.get("word")).trim(), meaning: String(fd.get("meaning")).trim(), thai: String(fd.get("thai")).trim(), example: String(fd.get("example")).trim(), pron: String(fd.get("pron")).trim(), sample: false };
+      if (!patch.word) return;
+      if (!patch.meaning && !patch.thai) { toast("Add an English or Thai meaning"); return; }
+      editing = null;
+      await safe(store.update(id, patch), "Saved");
+      renderWords();
+    }));
+  }
+
+  // ---------- keyboard ----------
+  document.addEventListener("keydown", (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+    if (tab === "review" && rv.queue && !typing) {
+      if (e.code === "Space" || (e.key === "Enter" && !rv.flipped)) { e.preventDefault(); flip(); }
+      else if (e.key === "s" || e.key === "S") { const c = byId(rv.queue[rv.i]); if (c) speak(c.word); }
+      else if (rv.flipped && ["1", "2", "3"].includes(e.key)) rate(["again", "good", "easy"][+e.key - 1]);
+    }
+    if (tab === "quiz" && qz.qs && qz.i < qz.qs.length) {
+      const q = qz.qs[qz.i];
+      if (!qz.answered && q.options && !typing && /^[1-4]$/.test(e.key) && q.options[+e.key - 1]) answer(q.options[+e.key - 1]);
+      else if (qz.answered && e.key === "Enter" && e.target.id !== "qz-next") { e.preventDefault(); nextQ(); }
+    }
+  });
+
+  // ---------- boot ----------
+  function renderAll() {
+    renderStats(); renderWords();
+    if (tab === "review") renderReview();
+    if (tab === "quiz" && !qz.qs) renderQuiz();
+  }
+  try { const t = localStorage.getItem("wordbox.tab"); if (t) tab = t; } catch {}
+  setTab(tab);
+  renderAll();
+  initStore().then((s) => {
+    store = s;
+    s.subscribe((list) => {
+      cards = list.filter((c) => c && c.word);
+      if (!loaded) { loaded = true; if (!cards.length && tab !== "words") setTab("words"); }
+      renderAll();
+    });
+  });
+})();
+</script>
+</body></html>
